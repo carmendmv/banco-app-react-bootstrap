@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "owner": "Sra. Lucía Carranza Tafoya",
+    "username": "slct",
+    "pin": 2589
+  },
+  {
+    "id": 2,
+    "owner": "Jorge Delacrúz Paz",
+    "username": "jdp",
+    "pin": 1104
+  },
+  {
+    "id": 3,
+    "owner": "Mariano Ramírez Casas",
+    "username": "mrc",
+    "pin": 7419
+  },
+  {
+    "id": 4,
+    "owner": "Gonzalo Padrón Gaytán",
+    "username": "gpg",
+    "pin": 5344
+  },
+  {
+    "id": 5,
+    "owner": "Joaquín Ceja Jaime",
+    "username": "jcj",
+    "pin": 9969
+  },
+  {
+    "id": 6,
+    "owner": "Juan Cuellar Luna",
+    "username": "jcl",
+    "pin": 5441
+  },
+  {
+    "id": 7,
+    "owner": "Caridad Limón Uribe",
+    "username": "clu",
+    "pin": 9050
+  },
+  {
+    "id": 8,
+    "owner": "Sta. María Luisa Caballero Maya",
+    "username": "smlcm",
+    "pin": 7593
+  },
+  {
+    "id": 9,
+    "owner": "Homero Guillén Negrete",
+    "username": "hgn",
+    "pin": 2531
+  },
+  {
+    "id": 10,
+    "owner": "Sr. Alejandro Pabón Briseño",
+    "username": "sapb",
+    "pin": 9915
+  }
+]
