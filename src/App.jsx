@@ -25,17 +25,22 @@ const generateRandomTransactions = (num) => {
 function App() {
   const [user, setUser] = useState(null);
   const [transactions] = useState(() =>
-    generateRandomTransactions(10).map(tx => ({
+    generateRandomTransactions(10).map((tx) => ({
       ...tx,
       date: moment(tx.date).toISOString(), // Asegura formato ISO
-    }))
+    })),
   );
   const balance = 3840.0;
 
   return (
     <div className="container mt-5">
       {user ? (
-        <Dashboard user={user} balance={balance} transactions={transactions} setUser={setUser} />
+        <Dashboard
+          user={user}
+          balance={balance}
+          transactions={transactions}
+          setUser={setUser}
+        />
       ) : (
         <Login setUser={setUser} />
       )}
