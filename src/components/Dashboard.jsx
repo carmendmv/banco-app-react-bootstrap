@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Table, Form, Button, Alert } from "react-bootstrap";
-import moment from "moment";
-import "moment/locale/es";
-
-moment.locale("es");
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Table,
+  Form,
+  Button,
+  Alert,
+} from "react-bootstrap";
+import { formatDistanceToNow, format } from "date-fns";
+import { es } from "date-fns/locale";
 
 function Dashboard({ user, balance, transactions, setUser }) {
   const [currentBalance, setCurrentBalance] = useState(balance);
@@ -11,7 +18,6 @@ function Dashboard({ user, balance, transactions, setUser }) {
   const [message, setMessage] = useState(null);
   const [sortTransactions, setSortTransactions] = useState(false);
 
-  // Estados adicionales
   const [transferTo, setTransferTo] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
   const [loanAmount, setLoanAmount] = useState("");
@@ -28,50 +34,58 @@ function Dashboard({ user, balance, transactions, setUser }) {
 
   useEffect(() => {
     const countdown = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          handleLogout(); // Cerrar sesión cuando el tiempo llegue a cero
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(countdown);
   }, []);
 
-
-  // Calcular estadísticas
-  const totalIn = transactionList.filter(tx => tx.amount > 0).reduce((sum, tx) => sum + tx.amount, 0);
-  const totalOut = transactionList.filter(tx => tx.amount < 0).reduce((sum, tx) => sum + tx.amount, 0);
+  const totalIn = transactionList
+    .filter((tx) => tx.amount > 0)
+    .reduce((sum, tx) => sum + tx.amount, 0);
+  const totalOut = transactionList
+    .filter((tx) => tx.amount < 0)
+    .reduce((sum, tx) => sum + tx.amount, 0);
   const interest = totalIn * 0.02;
 
-  // Manejo de cierre de sesión
   const handleLogout = () => {
     setUser(null);
   };
 
   const handleTransfer = () => {
     const amount = parseFloat(transferAmount);
-
     if (!transferTo || isNaN(amount) || amount <= 0 || amount > currentBalance) {
       setMessage("Transferencia inválida. Verifica los datos.");
       return;
     }
-
-    setCurrentBalance(prev => prev - amount);
-    setTransactionList([...transactionList, { type: "RETIRO", date: new Date().toISOString(), amount: -amount }]);
+    setCurrentBalance((prev) => prev - amount);
+    setTransactionList([
+      ...transactionList,
+      { type: "RETIRO", date: new Date().toISOString(), amount: -amount },
+    ]);
     setMessage(`Transferencia de ${amount.toFixed(2)}€ realizada con éxito.`);
   };
 
   const handleLoan = () => {
     const amount = parseFloat(loanAmount);
-
     if (isNaN(amount) || amount <= 0) {
       setMessage("El préstamo debe ser una cantidad positiva.");
       return;
     }
-
     if (amount > currentBalance * 2) {
       setMessage("El préstamo supera el 200% de su saldo y no puede ser aprobado.");
       return;
     }
-
-    setCurrentBalance(prev => prev + amount);
-    setTransactionList([...transactionList, { type: "DEPÓSITO", date: new Date().toISOString(), amount }]);
+    setCurrentBalance((prev) => prev + amount);
+    setTransactionList([
+      ...transactionList,
+      { type: "DEPÓSITO", date: new Date().toISOString(), amount },
+    ]);
     setMessage("Préstamo aprobado y depositado en su cuenta.");
   };
 
@@ -86,21 +100,44 @@ function Dashboard({ user, balance, transactions, setUser }) {
     }
   };
 
+  const formatDate = function (date) {
+    const transactionDate = new Date(date);
 
-  // Función para mostrar fechas en formato "hace X días"
-  const formatDate = (date) => moment(date).fromNow();
+    if (isNaN(transactionDate)) {
+      return "Fecha inválida";
+    }
 
-  // Ordenar transacciones correctamente
+    if (transactionDate > new Date()) {
+      return format(transactionDate, "d 'de' MMMM 'de' yyyy, HH:mm", {
+        locale: es,
+      });
+    }
+
+    const relativeTime = formatDistanceToNow(transactionDate, {
+      locale: es,
+      addSuffix: true,
+    });
+
+    if (relativeTime.includes("alrededor de")) {
+      return format(transactionDate, "d 'de' MMMM 'de' yyyy, HH:mm", {
+        locale: es,
+      });
+    }
+
+    return relativeTime;
+  };
+
+  // Ordenar las transacciones por fecha
   const sortedTransactions = sortTransactions
-    ? [...transactionList].sort((a, b) => new Date(a.date) - new Date(b.date)) // Orden ascendente
-    : [...transactionList].sort((a, b) => new Date(b.date) - new Date(a.date)); // Orden descendente
+    ? [...transactionList].sort((a, b) => new Date(a.date) - new Date(b.date))
+    : [...transactionList].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
     <Container className="mt-4">
       {message && <Alert variant="info">{message}</Alert>}
 
       <Row className="mb-4">
-        <Col><h2>Bienvenido, {user.owner}</h2></Col>
+        <Col><h2>Hola, {user.owner}</h2></Col>
         <Col className="text-end"><h2>{currentBalance.toFixed(2)}€</h2></Col>
       </Row>
 
@@ -108,19 +145,23 @@ function Dashboard({ user, balance, transactions, setUser }) {
         <Col md={8}>
           <Card className="mb-3">
             <Card.Body>
-              <Card.Title>
+            <Card.Title>
                 Historial de Transacciones
-                <Form.Check 
+                <Form.Check
                   type="checkbox"
-                  label="Ordenar por fecha"
+                  label="Ordenar por fecha ascendente"
                   className="ms-3 d-inline-block"
                   checked={sortTransactions}
-                  onChange={() => setSortTransactions(prev => !prev)}
+                  onChange={() => setSortTransactions((prev) => !prev)}
                 />
               </Card.Title>
               <Table striped bordered hover className="mt-2">
                 <thead>
-                  <tr><th>Tipo</th><th>Fecha</th><th>Monto</th></tr>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {sortedTransactions.map((tx, index) => (
@@ -130,7 +171,7 @@ function Dashboard({ user, balance, transactions, setUser }) {
                           {tx.amount > 0 ? "DEPÓSITO" : "RETIRO"}
                         </span>
                       </td>
-                      <td>{formatDate(tx.date)}</td> {/* Muestra "hace X días" */}
+                      <td>{formatDate(tx.date)}</td>
                       <td>{tx.amount.toFixed(2)}€</td>
                     </tr>
                   ))}
@@ -141,15 +182,31 @@ function Dashboard({ user, balance, transactions, setUser }) {
         </Col>
 
         <Col md={4}>
-          <div className="d-flex flex-column gap-3">
+          <div className="d-flex flex-column gap-3 mt-6">
             <Card className="bg-warning">
               <Card.Body>
                 <Card.Title>Transferencia</Card.Title>
                 <Form>
                   <Row className="align-items-center">
-                    <Col><Form.Control type="text" placeholder="Nombre y apellidos" value={transferTo} onChange={(e) => setTransferTo(e.target.value)} /></Col>
-                    <Col><Form.Control type="number" placeholder="Monto" value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)} /></Col>
-                    <Col xs="auto"><Button variant="dark" onClick={handleTransfer}>→</Button></Col>
+                    <Col>
+                      <Form.Control
+                        type="text"
+                        placeholder="Nombre y apellidos"
+                        value={transferTo}
+                        onChange={(e) => setTransferTo(e.target.value)}
+                      />
+                    </Col>
+                    <Col>
+                      <Form.Control
+                        type="number"
+                        placeholder="Monto"
+                        value={transferAmount}
+                        onChange={(e) => setTransferAmount(e.target.value)}
+                      />
+                    </Col>
+                    <Col xs="auto">
+                      <Button variant="dark" onClick={handleTransfer}>→</Button>
+                    </Col>
                   </Row>
                 </Form>
               </Card.Body>
@@ -160,8 +217,17 @@ function Dashboard({ user, balance, transactions, setUser }) {
                 <Card.Title>Solicitar Préstamo</Card.Title>
                 <Form>
                   <Row className="align-items-center">
-                    <Col><Form.Control type="number" placeholder="Monto" value={loanAmount} onChange={(e) => setLoanAmount(e.target.value)} /></Col>
-                    <Col xs="auto"><Button variant="dark" onClick={handleLoan}>→</Button></Col>
+                    <Col>
+                      <Form.Control
+                        type="number"
+                        placeholder="Monto"
+                        value={loanAmount}
+                        onChange={(e) => setLoanAmount(e.target.value)}
+                      />
+                    </Col>
+                    <Col xs="auto">
+                      <Button variant="dark" onClick={handleLoan}>→</Button>
+                    </Col>
                   </Row>
                 </Form>
               </Card.Body>
@@ -172,9 +238,25 @@ function Dashboard({ user, balance, transactions, setUser }) {
                 <Card.Title>Cerrar Cuenta</Card.Title>
                 <Form>
                   <Row className="align-items-center">
-                    <Col><Form.Control type="text" placeholder="Nombre y apellidos" value={confirmUser} onChange={(e) => setConfirmUser(e.target.value)} /></Col>
-                    <Col><Form.Control type="password" placeholder="PIN" value={confirmPin} onChange={(e) => setConfirmPin(e.target.value)} /></Col>
-                    <Col xs="auto"><Button variant="dark" onClick={handleCloseAccount}>→</Button></Col>
+                    <Col>
+                      <Form.Control
+                        type="text"
+                        placeholder="Nombre y apellidos"
+                        value={confirmUser}
+                        onChange={(e) => setConfirmUser(e.target.value)}
+                      />
+                    </Col>
+                    <Col>
+                      <Form.Control
+                        type="password"
+                        placeholder="PIN"
+                        value={confirmPin}
+                        onChange={(e) => setConfirmPin(e.target.value)}
+                      />
+                    </Col>
+                    <Col xs="auto">
+                      <Button variant="dark" onClick={handleCloseAccount}>→</Button>
+                    </Col>
                   </Row>
                 </Form>
               </Card.Body>
@@ -191,7 +273,7 @@ function Dashboard({ user, balance, transactions, setUser }) {
         <Col md={3}><Card className="text-center"><Card.Body><Card.Title>Tiempo Restante</Card.Title><Card.Text>{Math.floor(timeLeft / 60)}:{timeLeft % 60}</Card.Text></Card.Body></Card></Col>
       </Row>
 
-      <footer className="text-center mt-4">
+      <footer className="text-center mt-4 mb-5 border-top pt-3">
         <p>Has iniciado sesión como <strong>{user.owner}</strong></p>
         <Button variant="link" onClick={handleLogout}>Cerrar sesión</Button>
       </footer>
