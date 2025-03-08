@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Table,
-  Form,
-  Button,
-  Alert,
-} from "react-bootstrap";
+import {Container,Row, Col,Card,Table,Form, Button,Alert,} from "react-bootstrap";
 import { formatDistanceToNow, format } from "date-fns";
 import { es } from "date-fns/locale";
+
 function Dashboard({ user, balance, transactions, setUser }) {
   const [currentBalance, setCurrentBalance] = useState(balance);
   const [transactionList, setTransactionList] = useState(transactions);
@@ -22,12 +14,14 @@ function Dashboard({ user, balance, transactions, setUser }) {
   const [confirmUser, setConfirmUser] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutos en segundos
+
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => setMessage(null), 5000);
       return () => clearTimeout(timer);
     }
   }, [message]);
+
   useEffect(() => {
     const countdown = setInterval(() => {
       setTimeLeft((prev) => {
@@ -40,6 +34,7 @@ function Dashboard({ user, balance, transactions, setUser }) {
     }, 1000);
     return () => clearInterval(countdown);
   }, []);
+
   // Calcular estadísticas
   const totalIn = transactionList
     .filter((tx) => tx.amount > 0)
@@ -51,6 +46,7 @@ function Dashboard({ user, balance, transactions, setUser }) {
   const handleLogout = () => {
     setUser(null);
   };
+
   const handleTransfer = () => {
     const amount = parseFloat(transferAmount);
     if (
@@ -88,6 +84,8 @@ function Dashboard({ user, balance, transactions, setUser }) {
     ]);
     setMessage("Préstamo aprobado y depositado en su cuenta.");
   };
+
+
   const handleCloseAccount = () => {
     if (confirmUser === user.owner && confirmPin === user.pin.toString()) {
       if (
@@ -102,6 +100,7 @@ function Dashboard({ user, balance, transactions, setUser }) {
       setMessage("Usuario o PIN incorrectos.");
     }
   };
+
   // Función para formatear fechas
   const formatDate = function (date) {
     const transactionDate = new Date(date);
@@ -128,16 +127,18 @@ function Dashboard({ user, balance, transactions, setUser }) {
     }
     return relativeTime; // "hace X días"
   };
+
   // Ordenar las transacciones por fecha
   const sortedTransactions = sortTransactions
     ? [...transactionList].sort((a, b) => new Date(a.date) - new Date(b.date))
     : [...transactionList].sort((a, b) => new Date(b.date) - new Date(a.date));
+
   return (
     <Container className="mt-4">
       {message && <Alert variant="info">{message}</Alert>}
       <Row className="mb-4">
         <Col>
-          <h2>Bienvenido, {user.owner}</h2>
+          <h2>Hola, {user.owner}</h2>
         </Col>
         <Col className="text-end">
           <h2>{currentBalance.toFixed(2)}€</h2>
