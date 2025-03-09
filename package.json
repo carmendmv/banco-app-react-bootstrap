@@ -1,8 +1,9 @@
 {
   "name": "banco-app-react-bootstrap",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "homepage": "https://carmendmv.github.io/banco-app-react-bootstrap",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
