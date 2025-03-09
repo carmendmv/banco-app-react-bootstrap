@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "vite build && gh-pages -d dis",
+    "deploy": "vite build && gh-pages -d dist",
     "start": "react-scripts start",
     "minify": "npm run build && npm run minify-css && npm run minify-js"
   },

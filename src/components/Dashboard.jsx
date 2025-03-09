@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from "react";
-import {Container,Row, Col,Card,Table,Form, Button,Alert,} from "react-bootstrap";
+import { Container, Row, Col, Card, Table, Form, Button, Alert } from "react-bootstrap";
 import { formatDistanceToNow, format } from "date-fns";
 import { es } from "date-fns/locale";
 
+// Función para generar valores aleatorios
+const generateRandomTransaction = () => {
+  const amount = Math.floor(Math.random() * 500) + 1;  // Monto aleatorio entre 1 y 500
+  const type = Math.random() > 0.5 ? "DEPÓSITO" : "RETIRO";  // Aleatorio entre DEPÓSITO y RETIRO
+  const date = new Date();
+  date.setDate(date.getDate() - Math.floor(Math.random() * 30)); // Transacciones de hasta 30 días atrás
+
+  return {
+    type,
+    date: date.toISOString(),
+    amount: type === "DEPÓSITO" ? amount : -amount,
+  };
+};
+
 function Dashboard({ user, balance, transactions, setUser }) {
-  const [currentBalance, setCurrentBalance] = useState(balance);
-  const [transactionList, setTransactionList] = useState(transactions);
+  const [currentBalance, setCurrentBalance] = useState(balance || Math.floor(Math.random() * 5000) + 100);  // Balance inicial aleatorio
+  const [transactionList, setTransactionList] = useState(
+    transactions || Array.from({ length: 10 }, generateRandomTransaction)  // Crear 10 transacciones aleatorias si no hay transacciones iniciales
+  );
   const [message, setMessage] = useState(null);
   const [sortTransactions, setSortTransactions] = useState(false);
   const [transferTo, setTransferTo] = useState("");
@@ -65,6 +81,7 @@ function Dashboard({ user, balance, transactions, setUser }) {
     ]);
     setMessage(`Transferencia de ${amount.toFixed(2)}€ realizada con éxito.`);
   };
+
   const handleLoan = () => {
     const amount = parseFloat(loanAmount);
     if (isNaN(amount) || amount <= 0) {
@@ -85,7 +102,6 @@ function Dashboard({ user, balance, transactions, setUser }) {
     setMessage("Préstamo aprobado y depositado en su cuenta.");
   };
 
-
   const handleCloseAccount = () => {
     if (confirmUser === user.owner && confirmPin === user.pin.toString()) {
       if (
@@ -104,28 +120,24 @@ function Dashboard({ user, balance, transactions, setUser }) {
   // Función para formatear fechas
   const formatDate = function (date) {
     const transactionDate = new Date(date);
-    // Verificar si la fecha es válida
     if (isNaN(transactionDate)) {
       return "Fecha inválida";
     }
-    // Si la fecha está en el futuro, mostrarla en formato completo (día, mes, año, hora)
     if (transactionDate > new Date()) {
       return format(transactionDate, "d 'de' MMMM 'de' yyyy, HH:mm", {
         locale: es,
       });
     }
-    // Si la fecha está en el pasado, mostrarla de forma relativa ("hace X días"), sin la palabra "alrededor"
     const relativeTime = formatDistanceToNow(transactionDate, {
       locale: es,
       addSuffix: true,
     });
-    // Evitar la palabra "alrededor" que aparece cuando el cálculo está cerca de un mes o año
     if (relativeTime.includes("alrededor de")) {
       return format(transactionDate, "d 'de' MMMM 'de' yyyy, HH:mm", {
         locale: es,
       });
     }
-    return relativeTime; // "hace X días"
+    return relativeTime;
   };
 
   // Ordenar las transacciones por fecha
@@ -152,7 +164,7 @@ function Dashboard({ user, balance, transactions, setUser }) {
                 Historial de Transacciones
                 <Form.Check
                   type="checkbox"
-                  label="Ordenar por fecha ascendente"
+                  label="Ordenar por fecha descendente"
                   className="ms-3 d-inline-block"
                   checked={sortTransactions}
                   onChange={() => setSortTransactions((prev) => !prev)}
